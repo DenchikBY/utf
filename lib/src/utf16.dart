@@ -81,7 +81,8 @@ String decodeUtf16(List<int> bytes,
       Utf16BytesToCodeUnitsDecoder(bytes, offset, length, replacementCodepoint);
   var codeunits = decoder.decodeRest();
   return String.fromCharCodes(
-      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint).whereType<int>());
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint)
+          .whereType<int>());
 }
 
 /// Produce a String from a sequence of UTF-16BE encoded bytes. This method
@@ -98,7 +99,8 @@ String decodeUtf16be(List<int> bytes,
           bytes, offset, length, stripBom, replacementCodepoint))
       .decodeRest();
   return String.fromCharCodes(
-      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint).whereType<int>());
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint)
+          .whereType<int>());
 }
 
 /// Produce a String from a sequence of UTF-16LE encoded bytes. This method
@@ -115,7 +117,8 @@ String decodeUtf16le(List<int> bytes,
           bytes, offset, length, stripBom, replacementCodepoint))
       .decodeRest();
   return String.fromCharCodes(
-      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint).whereType<int>());
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint)
+          .whereType<int>());
 }
 
 /// Produce a list of UTF-16 encoded bytes. This method prefixes the resulting
@@ -126,7 +129,8 @@ List<int?> encodeUtf16(String str) => encodeUtf16be(str, true);
 /// UTF-16BE bytes with no BOM.
 List<int?> encodeUtf16be(String str, [bool writeBOM = false]) {
   var utf16CodeUnits = _stringToUtf16CodeUnits(str);
-  var encoding = <int?>[]..length = 2 * utf16CodeUnits.length + (writeBOM ? 2 : 0);
+  var encoding = <int?>[]..length =
+      2 * utf16CodeUnits.length + (writeBOM ? 2 : 0);
   var i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_HI;
@@ -143,7 +147,8 @@ List<int?> encodeUtf16be(String str, [bool writeBOM = false]) {
 /// UTF-16LE bytes with no BOM.
 List<int?> encodeUtf16le(String str, [bool writeBOM = false]) {
   var utf16CodeUnits = _stringToUtf16CodeUnits(str);
-  var encoding = <int?>[]..length = 2 * utf16CodeUnits.length + (writeBOM ? 2 : 0);
+  var encoding = <int?>[]..length =
+      2 * utf16CodeUnits.length + (writeBOM ? 2 : 0);
   var i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_LO;

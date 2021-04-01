@@ -62,7 +62,8 @@ String decodeUtf32(List<int> bytes,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return String.fromCharCodes(
       (Utf32BytesDecoder(bytes, offset, length, replacementCodepoint))
-          .decodeRest().whereType<int>());
+          .decodeRest()
+          .whereType<int>());
 }
 
 /// Produce a String from a sequence of UTF-32BE encoded bytes. The parameters
@@ -77,7 +78,8 @@ String decodeUtf32be(List<int> bytes,
         int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
     String.fromCharCodes((Utf32beBytesDecoder(
             bytes, offset, length, stripBom, replacementCodepoint))
-        .decodeRest().whereType<int>());
+        .decodeRest()
+        .whereType<int>());
 
 /// Produce a String from a sequence of UTF-32LE encoded bytes. The parameters
 /// allow an offset into a list of bytes (as int), limiting the length of the
@@ -91,7 +93,8 @@ String decodeUtf32le(List<int> bytes,
         int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
     String.fromCharCodes((Utf32leBytesDecoder(
             bytes, offset, length, stripBom, replacementCodepoint))
-        .decodeRest().whereType<int>());
+        .decodeRest()
+        .whereType<int>());
 
 /// Produce a list of UTF-32 encoded bytes. This method prefixes the resulting
 /// bytes with a big-endian byte-order-marker.
@@ -101,7 +104,8 @@ List<int?> encodeUtf32(String str) => encodeUtf32be(str, true);
 /// UTF-32BE bytes with no BOM.
 List<int?> encodeUtf32be(String str, [bool writeBOM = false]) {
   var utf32CodeUnits = stringToCodepoints(str);
-  var encoding = <int?>[]..length = 4 * utf32CodeUnits.length + (writeBOM ? 4 : 0);
+  var encoding = <int?>[]..length =
+      4 * utf32CodeUnits.length + (writeBOM ? 4 : 0);
   var i = 0;
   if (writeBOM) {
     encoding[i++] = 0;
@@ -122,7 +126,8 @@ List<int?> encodeUtf32be(String str, [bool writeBOM = false]) {
 /// UTF-32BE bytes with no BOM.
 List<int?> encodeUtf32le(String str, [bool writeBOM = false]) {
   var utf32CodeUnits = stringToCodepoints(str);
-  var encoding = <int?>[]..length = 4 * utf32CodeUnits.length + (writeBOM ? 4 : 0);
+  var encoding = <int?>[]..length =
+      4 * utf32CodeUnits.length + (writeBOM ? 4 : 0);
   var i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_LO;
