@@ -1,3 +1,7 @@
+## 0.10.0
+
+* Null Safety Support
+
 ## 0.9.0+5
 
 * Set max SDK version to `<3.0.0`, and adjust other dependencies.
