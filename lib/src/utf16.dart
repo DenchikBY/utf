@@ -27,7 +27,7 @@ String codepointsToString(List<int> codepoints) {
 /// [replacementCodepoint] is U+FFFD.
 IterableUtf16Decoder decodeUtf16AsIterable(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return IterableUtf16Decoder._(
       () => Utf16BytesToCodeUnitsDecoder(
@@ -43,7 +43,7 @@ IterableUtf16Decoder decodeUtf16AsIterable(List<int> bytes,
 /// value for the [replacementCodepoint] is U+FFFD.
 IterableUtf16Decoder decodeUtf16beAsIterable(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return IterableUtf16Decoder._(
@@ -60,7 +60,7 @@ IterableUtf16Decoder decodeUtf16beAsIterable(List<int> bytes,
 /// value for the [replacementCodepoint] is U+FFFD.
 IterableUtf16Decoder decodeUtf16leAsIterable(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return IterableUtf16Decoder._(
@@ -75,13 +75,13 @@ IterableUtf16Decoder decodeUtf16leAsIterable(List<int> bytes,
 /// value for the [replacementCodepoint] is U+FFFD.
 String decodeUtf16(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   var decoder =
       Utf16BytesToCodeUnitsDecoder(bytes, offset, length, replacementCodepoint);
   var codeunits = decoder.decodeRest();
   return String.fromCharCodes(
-      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint).whereType<int>());
 }
 
 /// Produce a String from a sequence of UTF-16BE encoded bytes. This method
@@ -91,14 +91,14 @@ String decodeUtf16(List<int> bytes,
 /// The default value for the [replacementCodepoint] is U+FFFD.
 String decodeUtf16be(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   var codeunits = (Utf16beBytesToCodeUnitsDecoder(
           bytes, offset, length, stripBom, replacementCodepoint))
       .decodeRest();
   return String.fromCharCodes(
-      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint).whereType<int>());
 }
 
 /// Produce a String from a sequence of UTF-16LE encoded bytes. This method
@@ -108,32 +108,32 @@ String decodeUtf16be(List<int> bytes,
 /// The default value for the [replacementCodepoint] is U+FFFD.
 String decodeUtf16le(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   var codeunits = (Utf16leBytesToCodeUnitsDecoder(
           bytes, offset, length, stripBom, replacementCodepoint))
       .decodeRest();
   return String.fromCharCodes(
-      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint).whereType<int>());
 }
 
 /// Produce a list of UTF-16 encoded bytes. This method prefixes the resulting
 /// bytes with a big-endian byte-order-marker.
-List<int> encodeUtf16(String str) => encodeUtf16be(str, true);
+List<int?> encodeUtf16(String str) => encodeUtf16be(str, true);
 
 /// Produce a list of UTF-16BE encoded bytes. By default, this method produces
 /// UTF-16BE bytes with no BOM.
-List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
+List<int?> encodeUtf16be(String str, [bool writeBOM = false]) {
   var utf16CodeUnits = _stringToUtf16CodeUnits(str);
-  var encoding = List<int>(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
+  var encoding = <int?>[]..length = 2 * utf16CodeUnits.length + (writeBOM ? 2 : 0);
   var i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_HI;
     encoding[i++] = UNICODE_UTF_BOM_LO;
   }
   for (var unit in utf16CodeUnits) {
-    encoding[i++] = (unit & UNICODE_BYTE_ONE_MASK) >> 8;
+    encoding[i++] = (unit! & UNICODE_BYTE_ONE_MASK) >> 8;
     encoding[i++] = unit & UNICODE_BYTE_ZERO_MASK;
   }
   return encoding;
@@ -141,16 +141,16 @@ List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
 
 /// Produce a list of UTF-16LE encoded bytes. By default, this method produces
 /// UTF-16LE bytes with no BOM.
-List<int> encodeUtf16le(String str, [bool writeBOM = false]) {
+List<int?> encodeUtf16le(String str, [bool writeBOM = false]) {
   var utf16CodeUnits = _stringToUtf16CodeUnits(str);
-  var encoding = List<int>(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
+  var encoding = <int?>[]..length = 2 * utf16CodeUnits.length + (writeBOM ? 2 : 0);
   var i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_LO;
     encoding[i++] = UNICODE_UTF_BOM_HI;
   }
   for (var unit in utf16CodeUnits) {
-    encoding[i++] = unit & UNICODE_BYTE_ZERO_MASK;
+    encoding[i++] = unit! & UNICODE_BYTE_ZERO_MASK;
     encoding[i++] = (unit & UNICODE_BYTE_ONE_MASK) >> 8;
   }
   return encoding;
@@ -158,14 +158,14 @@ List<int> encodeUtf16le(String str, [bool writeBOM = false]) {
 
 /// Identifies whether a List of bytes starts (based on offset) with a
 /// byte-order marker (BOM).
-bool hasUtf16Bom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
+bool hasUtf16Bom(List<int> utf32EncodedBytes, [int offset = 0, int? length]) {
   return hasUtf16beBom(utf32EncodedBytes, offset, length) ||
       hasUtf16leBom(utf32EncodedBytes, offset, length);
 }
 
 /// Identifies whether a List of bytes starts (based on offset) with a
 /// big-endian byte-order marker (BOM).
-bool hasUtf16beBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
+bool hasUtf16beBom(List<int> utf16EncodedBytes, [int offset = 0, int? length]) {
   var end = length != null ? offset + length : utf16EncodedBytes.length;
   return (offset + 2) <= end &&
       utf16EncodedBytes[offset] == UNICODE_UTF_BOM_HI &&
@@ -174,14 +174,14 @@ bool hasUtf16beBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
 
 /// Identifies whether a List of bytes starts (based on offset) with a
 /// little-endian byte-order marker (BOM).
-bool hasUtf16leBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
+bool hasUtf16leBom(List<int> utf16EncodedBytes, [int offset = 0, int? length]) {
   var end = length != null ? offset + length : utf16EncodedBytes.length;
   return (offset + 2) <= end &&
       utf16EncodedBytes[offset] == UNICODE_UTF_BOM_LO &&
       utf16EncodedBytes[offset + 1] == UNICODE_UTF_BOM_HI;
 }
 
-List<int> _stringToUtf16CodeUnits(String str) {
+List<int?> _stringToUtf16CodeUnits(String str) {
   return codepointsToUtf16CodeUnits(str.codeUnits);
 }
 
@@ -192,7 +192,7 @@ typedef _CodeUnitsProvider = ListRangeIterator Function();
 /// as requested by the user of the iterator. (Note: results are not cached.)
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class IterableUtf16Decoder extends IterableBase<int> {
+class IterableUtf16Decoder extends IterableBase<int?> {
   final _CodeUnitsProvider codeunitsProvider;
   final int replacementCodepoint;
 
@@ -210,15 +210,15 @@ class IterableUtf16Decoder extends IterableBase<int> {
 abstract class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator {
   // TODO(kevmoo): should this field be private?
   final ListRangeIterator utf16EncodedBytesIterator;
-  final int replacementCodepoint;
-  int _current;
+  final int? replacementCodepoint;
+  int? _current;
 
   Utf16BytesToCodeUnitsDecoder._fromListRangeIterator(
       this.utf16EncodedBytesIterator, this.replacementCodepoint);
 
   factory Utf16BytesToCodeUnitsDecoder(List<int> utf16EncodedBytes,
       [int offset = 0,
-      int length,
+      int? length,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
     length ??= utf16EncodedBytes.length - offset;
     if (hasUtf16beBom(utf16EncodedBytes, offset, length)) {
@@ -236,8 +236,8 @@ abstract class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator {
   /// Provides a fast way to decode the rest of the source bytes in a single
   /// call. This method trades memory for improved speed in that it potentially
   /// over-allocates the List containing results.
-  List<int> decodeRest() {
-    var codeunits = List<int>(remaining);
+  List<int?> decodeRest() {
+    var codeunits = <int?>[]..length = remaining;
     var i = 0;
     while (moveNext()) {
       codeunits[i++] = current;
@@ -245,14 +245,14 @@ abstract class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator {
     if (i == codeunits.length) {
       return codeunits;
     } else {
-      var truncCodeunits = List<int>(i);
+      var truncCodeunits = <int?>[]..length = i;
       truncCodeunits.setRange(0, i, codeunits);
       return truncCodeunits;
     }
   }
 
   @override
-  int get current => _current;
+  int? get current => _current;
 
   @override
   bool moveNext() {
@@ -280,16 +280,16 @@ abstract class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator {
   int get position => utf16EncodedBytesIterator.position ~/ 2;
 
   @override
-  void backup([int by = 1]) {
-    utf16EncodedBytesIterator.backup(2 * by);
+  void backup([int? by = 1]) {
+    utf16EncodedBytesIterator.backup(2 * by!);
   }
 
   @override
   int get remaining => (utf16EncodedBytesIterator.remaining + 1) ~/ 2;
 
   @override
-  void skip([int count = 1]) {
-    utf16EncodedBytesIterator.skip(2 * count);
+  void skip([int? count = 1]) {
+    utf16EncodedBytesIterator.skip(2 * count!);
   }
 
   int decode();
@@ -300,7 +300,7 @@ abstract class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator {
 class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16beBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes,
       [int offset = 0,
-      int length,
+      int? length,
       bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT])
       : super._fromListRangeIterator(
@@ -314,9 +314,9 @@ class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   @override
   int decode() {
     utf16EncodedBytesIterator.moveNext();
-    var hi = utf16EncodedBytesIterator.current;
+    var hi = utf16EncodedBytesIterator.current!;
     utf16EncodedBytesIterator.moveNext();
-    var lo = utf16EncodedBytesIterator.current;
+    var lo = utf16EncodedBytesIterator.current!;
     return (hi << 8) + lo;
   }
 }
@@ -326,7 +326,7 @@ class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
 class Utf16leBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16leBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes,
       [int offset = 0,
-      int length,
+      int? length,
       bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT])
       : super._fromListRangeIterator(
@@ -340,9 +340,9 @@ class Utf16leBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   @override
   int decode() {
     utf16EncodedBytesIterator.moveNext();
-    var lo = utf16EncodedBytesIterator.current;
+    var lo = utf16EncodedBytesIterator.current!;
     utf16EncodedBytesIterator.moveNext();
-    var hi = utf16EncodedBytesIterator.current;
+    var hi = utf16EncodedBytesIterator.current!;
     return (hi << 8) + lo;
   }
 }

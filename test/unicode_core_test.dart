@@ -5,8 +5,8 @@
 library utf.unicode_core_test;
 
 import 'package:test/test.dart';
-import 'package:utf/utf.dart';
-import 'package:utf/src/util.dart';
+import 'package:utf_convert/src/util.dart';
+import 'package:utf_convert/utf.dart';
 
 import 'expect.dart' as expect;
 

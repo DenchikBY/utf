@@ -13,10 +13,10 @@ import 'util.dart';
 abstract class _StringDecoder extends StreamTransformerBase<List<int>, String>
     implements EventSink<List<int>> {
   final int _replacementChar;
-  List<int> _carry;
-  List<int> _buffer;
+  List<int>? _carry;
+  List<int>? _buffer;
 
-  EventSink<String> _outSink;
+  EventSink<String>? _outSink;
 
   _StringDecoder(this._replacementChar);
 
@@ -45,9 +45,9 @@ abstract class _StringDecoder extends StreamTransformerBase<List<int>, String>
       if (carry != null) pos = -carry.length;
       while (pos < available) {
         var currentPos = pos;
-        int getNext() {
+        int? getNext() {
           if (pos < 0) {
-            return carry[pos++ + carry.length];
+            return carry![pos++ + carry.length];
           } else if (pos < available) {
             return bytes[pos++];
           }
@@ -56,67 +56,58 @@ abstract class _StringDecoder extends StreamTransformerBase<List<int>, String>
 
         var consumed = _processBytes(getNext);
         if (consumed > 0) {
-          goodChars = _buffer.length;
+          goodChars = _buffer!.length;
         } else if (consumed == 0) {
-          _buffer.length = goodChars;
+          _buffer!.length = goodChars;
           if (currentPos < 0) {
             _carry = [];
-            _carry.addAll(carry);
-            _carry.addAll(bytes);
+            _carry!.addAll(carry!);
+            _carry!.addAll(bytes);
           } else {
             _carry = bytes.sublist(currentPos);
           }
           break;
         } else {
           // Invalid byte at position pos - 1
-          _buffer.length = goodChars;
+          _buffer!.length = goodChars;
           _addChar(-1);
-          goodChars = _buffer.length;
+          goodChars = _buffer!.length;
         }
       }
-      if (_buffer.isNotEmpty) {
+      if (_buffer!.isNotEmpty) {
         // Limit to 'goodChars', if lower than actual charCodes in the buffer.
-        _outSink.add(String.fromCharCodes(_buffer));
+        _outSink!.add(String.fromCharCodes(_buffer!));
       }
       _buffer = null;
     } catch (e, stackTrace) {
-      _outSink.addError(e, stackTrace);
+      _outSink!.addError(e, stackTrace);
     }
   }
 
   @override
-  void addError(error, [StackTrace stackTrace]) {
-    _outSink.addError(error, stackTrace);
+  void addError(error, [StackTrace? stackTrace]) {
+    _outSink!.addError(error, stackTrace);
   }
 
   @override
   void close() {
     if (_carry != null) {
-      if (_replacementChar != null) {
-        _outSink.add(
-            String.fromCharCodes(List.filled(_carry.length, _replacementChar)));
-      } else {
-        throw ArgumentError('Invalid codepoint');
-      }
+      _outSink!.add(String.fromCharCodes(List.filled(_carry!.length, _replacementChar)));
     }
-    _outSink.close();
+    _outSink!.close();
   }
 
-  int _processBytes(int Function() getNext);
+  int _processBytes(int? Function() getNext);
 
   void _addChar(int char) {
     void error() {
-      if (_replacementChar != null) {
-        char = _replacementChar;
-      } else {
-        throw ArgumentError('Invalid codepoint');
-      }
+      char = _replacementChar;
     }
 
     if (char < 0) error();
     if (char >= 0xD800 && char <= 0xDFFF) error();
     if (char > 0x10FFFF) error();
-    _buffer.add(char);
+    _buffer!.add(char);
   }
 }
 
@@ -127,8 +118,8 @@ class Utf8DecoderTransformer extends _StringDecoder {
       : super(replacementChar);
 
   @override
-  int _processBytes(int Function() getNext) {
-    var value = getNext();
+  int _processBytes(int? Function() getNext) {
+    var value = getNext()!;
     if ((value & 0xFF) != value) return -1; // Not a byte.
     if ((value & 0x80) == 0x80) {
       int additionalBytes;
@@ -182,7 +173,7 @@ class Utf8DecoderTransformer extends _StringDecoder {
 
 abstract class _StringEncoder extends StreamTransformerBase<String, List<int>>
     implements EventSink<String> {
-  EventSink<List<int>> _outSink;
+  EventSink<List<int>>? _outSink;
 
   @override
   Stream<List<int>> bind(Stream<String> stream) {
@@ -198,17 +189,17 @@ abstract class _StringEncoder extends StreamTransformerBase<String, List<int>>
 
   @override
   void add(String data) {
-    _outSink.add(_processString(data));
+    _outSink!.add(_processString(data));
   }
 
   @override
-  void addError(error, [StackTrace stackTrace]) {
-    _outSink.addError(error, stackTrace);
+  void addError(error, [StackTrace? stackTrace]) {
+    _outSink!.addError(error, stackTrace);
   }
 
   @override
   void close() {
-    _outSink.close();
+    _outSink!.close();
   }
 
   List<int> _processString(String string);
@@ -223,7 +214,7 @@ class Utf8EncoderTransformer extends _StringEncoder {
     var length = codepoints.length;
     for (var i = 0; i < length; i++) {
       int additionalBytes;
-      var charCode = codepoints[i];
+      var charCode = codepoints[i]!;
       if (charCode <= 0x007F) {
         additionalBytes = 0;
         bytes.add(charCode);

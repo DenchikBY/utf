@@ -1,6 +1,6 @@
 import 'package:test/test.dart' as ut;
 
-void listEquals(Iterable a, b, [String message]) {
+void listEquals(Iterable a, b, [String? message]) {
   ut.expect(b, ut.orderedEquals(a), reason: message);
 }
 
@@ -8,7 +8,7 @@ void equals(a, b) {
   ut.expect(b, ut.equals(a));
 }
 
-void stringEquals(String a, String b, [String message]) {
+void stringEquals(String a, String b, [String? message]) {
   ut.expect(b, ut.equals(a), reason: message);
 }
 

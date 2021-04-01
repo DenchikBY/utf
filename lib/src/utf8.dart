@@ -34,9 +34,14 @@ const int _UTF8_SUBSEQUENT_BYTE_BASE = 0x80;
 /// throw an ArgumentError rather than replace the bad value.
 IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  return IterableUtf8Decoder(bytes, offset, length, replacementCodepoint);
+  return IterableUtf8Decoder(
+    bytes,
+    offset: offset,
+    length: length ?? bytes.length,
+    replacementCodepoint: replacementCodepoint,
+  );
 }
 
 /// Produce a String from a List of UTF-8 encoded bytes. The parameters
@@ -46,19 +51,19 @@ IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes,
 /// rather than replace the bad value.
 String decodeUtf8(List<int> bytes,
     [int offset = 0,
-    int length,
+    int? length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return String.fromCharCodes(
-      (Utf8Decoder(bytes, offset, length, replacementCodepoint)).decodeRest());
+      (Utf8Decoder(bytes, offset, length, replacementCodepoint)).decodeRest().whereType<int>());
 }
 
 /// Produce a sequence of UTF-8 encoded bytes from the provided string.
-List<int> encodeUtf8(String str) => codepointsToUtf8(stringToCodepoints(str));
+List<int?> encodeUtf8(String str) => codepointsToUtf8(stringToCodepoints(str));
 
-int _addToEncoding(int offset, int bytes, int value, List<int> buffer) {
+int? _addToEncoding(int offset, int bytes, int? value, List<int?> buffer) {
   while (bytes > 0) {
     buffer[offset + bytes] =
-        _UTF8_SUBSEQUENT_BYTE_BASE | (value & _UTF8_LO_SIX_BIT_MASK);
+        _UTF8_SUBSEQUENT_BYTE_BASE | (value! & _UTF8_LO_SIX_BIT_MASK);
     value = value >> 6;
     bytes--;
   }
@@ -66,11 +71,14 @@ int _addToEncoding(int offset, int bytes, int value, List<int> buffer) {
 }
 
 /// Encode code points as UTF-8 code units.
-List<int> codepointsToUtf8(List<int> codepoints, [int offset = 0, int length]) {
+List<int?> codepointsToUtf8(List<int?> codepoints, [int offset = 0, int? length]) {
   var source = ListRange(codepoints, offset, length);
 
   var encodedLength = 0;
   for (var value in source) {
+    if (null == value) {
+      continue;
+    }
     if (value < 0 || value > UNICODE_VALID_RANGE_MAX) {
       encodedLength += 3;
     } else if (value <= _UTF8_ONE_BYTE_MAX) {
@@ -84,9 +92,13 @@ List<int> codepointsToUtf8(List<int> codepoints, [int offset = 0, int length]) {
     }
   }
 
-  var encoded = List<int>(encodedLength);
+  var encoded = <int?>[]..length = encodedLength;
   var insertAt = 0;
   for (var value in source) {
+    if (null == value) {
+      continue;
+    }
+
     if (value < 0 || value > UNICODE_VALID_RANGE_MAX) {
       encoded.setRange(insertAt, insertAt + 3, [0xef, 0xbf, 0xbd]);
       insertAt += 3;
@@ -96,17 +108,17 @@ List<int> codepointsToUtf8(List<int> codepoints, [int offset = 0, int length]) {
     } else if (value <= _UTF8_TWO_BYTE_MAX) {
       encoded[insertAt] = _UTF8_FIRST_BYTE_OF_TWO_BASE |
           (_UTF8_FIRST_BYTE_OF_TWO_MASK &
-              _addToEncoding(insertAt, 1, value, encoded));
+              _addToEncoding(insertAt, 1, value, encoded)!);
       insertAt += 2;
     } else if (value <= _UTF8_THREE_BYTE_MAX) {
       encoded[insertAt] = _UTF8_FIRST_BYTE_OF_THREE_BASE |
           (_UTF8_FIRST_BYTE_OF_THREE_MASK &
-              _addToEncoding(insertAt, 2, value, encoded));
+              _addToEncoding(insertAt, 2, value, encoded)!);
       insertAt += 3;
     } else if (value <= UNICODE_VALID_RANGE_MAX) {
       encoded[insertAt] = _UTF8_FIRST_BYTE_OF_FOUR_BASE |
           (_UTF8_FIRST_BYTE_OF_FOUR_MASK &
-              _addToEncoding(insertAt, 3, value, encoded));
+              _addToEncoding(insertAt, 3, value, encoded)!);
       insertAt += 4;
     }
   }
@@ -115,9 +127,9 @@ List<int> codepointsToUtf8(List<int> codepoints, [int offset = 0, int length]) {
 
 // Because UTF-8 specifies byte order, we do not have to follow the pattern
 // used by UTF-16 & UTF-32 regarding byte order.
-List<int> utf8ToCodepoints(List<int> utf8EncodedBytes,
+List<int?> utf8ToCodepoints(List<int> utf8EncodedBytes,
     [int offset = 0,
-    int length,
+    int? length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return Utf8Decoder(utf8EncodedBytes, offset, length, replacementCodepoint)
       .decodeRest();
@@ -128,7 +140,7 @@ List<int> utf8ToCodepoints(List<int> utf8EncodedBytes,
 /// as requested by the user of the iterator. (Note: results are not cached.)
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class IterableUtf8Decoder extends IterableBase<int> {
+class IterableUtf8Decoder extends IterableBase<int?> {
   final List<int> bytes;
   final int offset;
   @override
@@ -136,9 +148,9 @@ class IterableUtf8Decoder extends IterableBase<int> {
   final int replacementCodepoint;
 
   IterableUtf8Decoder(this.bytes,
-      [this.offset = 0,
-      this.length,
-      this.replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]);
+      {required this.length,
+      this.offset = 0,
+      this.replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT});
 
   @override
   Utf8Decoder get iterator =>
@@ -151,38 +163,39 @@ class IterableUtf8Decoder extends IterableBase<int> {
 /// character. Set the replacementCharacter to null to throw an
 /// ArgumentError rather than replace the bad value. The return value
 /// from this method can be used as an Iterable (e.g. in a for-loop).
-class Utf8Decoder implements Iterator<int> {
+class Utf8Decoder implements Iterator<int?> {
   // TODO(kevmoo): should this field be private?
   final ListRangeIterator utf8EncodedBytesIterator;
-  final int replacementCodepoint;
-  int _current;
+  final int? replacementCodepoint;
+  int? _current;
 
   Utf8Decoder(List<int> utf8EncodedBytes,
       [int offset = 0,
-      int length,
+      int? length,
       this.replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT])
       : utf8EncodedBytesIterator =
             (ListRange(utf8EncodedBytes, offset, length)).iterator;
 
   // Decode the remainder of the characters in this decoder
   //into a [List<int>].
-  List<int> decodeRest() {
-    var codepoints = List<int>(utf8EncodedBytesIterator.remaining);
+  List<int?> decodeRest() {
+    var codepoints = <int?>[]..length = utf8EncodedBytesIterator.remaining;
     var i = 0;
     while (moveNext()) {
       codepoints[i++] = current;
     }
+
     if (i == codepoints.length) {
       return codepoints;
-    } else {
-      var truncCodepoints = List<int>(i);
-      truncCodepoints.setRange(0, i, codepoints);
-      return truncCodepoints;
     }
+
+    var truncCodepoints = <int?>[]..length = i;
+    truncCodepoints.setRange(0, i, codepoints);
+    return truncCodepoints;
   }
 
   @override
-  int get current => _current;
+  int? get current => _current;
 
   @override
   bool moveNext() {
@@ -190,7 +203,7 @@ class Utf8Decoder implements Iterator<int> {
 
     if (!utf8EncodedBytesIterator.moveNext()) return false;
 
-    var value = utf8EncodedBytesIterator.current;
+    var value = utf8EncodedBytesIterator.current!;
     var additionalBytes = 0;
 
     if (value < 0) {
@@ -236,7 +249,7 @@ class Utf8Decoder implements Iterator<int> {
     }
     var j = 0;
     while (j < additionalBytes && utf8EncodedBytesIterator.moveNext()) {
-      var nextValue = utf8EncodedBytesIterator.current;
+      var nextValue = utf8EncodedBytesIterator.current!;
       if (nextValue > _UTF8_ONE_BYTE_MAX &&
           nextValue < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
         value = ((value << 6) | (nextValue & _UTF8_LO_SIX_BIT_MASK));
