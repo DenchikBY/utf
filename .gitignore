@@ -3,3 +3,5 @@
 .pub/
 pubspec.lock
 .idea
+.fvm
+build

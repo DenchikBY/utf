@@ -2,7 +2,6 @@ name: utf_convert
 version: 0.10.0
 
 description: Provides common operations for manipulating Unicode sequences
-author: Dart Team <misc@dartlang.org>
 homepage: https://www.github.com/dart-lang/utf
 
 environment:

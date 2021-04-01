@@ -5,7 +5,7 @@
 library utf.utf82_test;
 
 import 'package:test/test.dart';
-import 'package:utf_convert/utf.dart';
+import 'package:utf_convert/utf_convert.dart';
 
 import 'expect.dart' as expect;
 
